@@ -25,7 +25,32 @@
         .error {
             color: red;
         }
+        .countdown {
+            color: red;
+            font-weight: bold;
+        }
     </style>
+    <script>
+        let lockTime = {{ lock_time|default:0 }};
+        function startCountdown() {
+            const countdownElement = document.getElementById('countdown');
+            if (lockTime > 0) {
+                const interval = setInterval(() => {
+                    lockTime--;
+                    countdownElement.innerText = `Please wait ${lockTime} seconds.`;
+                    if (lockTime <= 0) {
+                        clearInterval(interval);
+                        countdownElement.innerText = '';
+                        document.getElementById('email').disabled = false;
+                        document.getElementById('password').disabled = false;
+                    }
+                }, 1000);
+            } else {
+                countdownElement.innerText = '';
+            }
+        }
+        window.onload = startCountdown;
+    </script>
 </head>
 <body>
     <div class="login-container">
@@ -33,10 +58,11 @@
         {% for message in messages %}
             <div class="error">{{ message }}</div>
         {% endfor %}
+        <div id="countdown" class="countdown"></div>
         <form method="POST">
             {% csrf_token %}
-            <input type="email" name="email" placeholder="Email" required><br><br>
-            <input type="password" name="password" placeholder="Password" required><br><br>
+            <input type="email" id="email" name="email" placeholder="Email" required {% if lock_time > 0 %}disabled{% endif %}><br><br>
+            <input type="password" id="password" name="password" placeholder="Password" required {% if lock_time > 0 %}disabled{% endif %}><br><br>
             <button type="submit">Login</button>
         </form>
     </div>
